@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-const admin = require("../config/firebaseAdmin");
+const { getAuth } = require("../config/firebaseAdmin");
 const User = require("../models/userModel");
 const sendEmail = require("../utils/sendEmail");
 
@@ -233,7 +233,7 @@ const googleAuth = async (req, res) => {
 
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(idToken);
+      decodedToken = await getAuth().verifyIdToken(idToken);
     } catch (authErr) {
       console.error("Firebase token verification error:", authErr.message);
       return res.status(401).json({
