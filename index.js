@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const creatorAuthRoutes = require("./routes/creatorAuthRoutes");
+const userAuthRoutes = require("./routes/userAuthRoutes");
 const { seedSuperAdminAccount } = require("./controllers/superAdminController");
 
 const app = express();
@@ -69,10 +70,16 @@ app.use("/api/creator/signup", authLimiter);
 app.use("/api/creator/verify-otp", otpLimiter);
 app.use("/api/creator/resend-otp", otpLimiter);
 app.use("/api/creator/forgot-password", otpLimiter);
+app.use("/api/user/login", authLimiter);
+app.use("/api/user/signup", authLimiter);
+app.use("/api/user/verify-otp", otpLimiter);
+app.use("/api/user/resend-otp", otpLimiter);
+app.use("/api/user/forgot-password", otpLimiter);
 
 app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/creator", creatorAuthRoutes);
+app.use("/api/user", userAuthRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
