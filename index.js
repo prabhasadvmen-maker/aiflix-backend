@@ -12,14 +12,34 @@ const userAuthRoutes = require("./routes/userAuthRoutes");
 const { seedSuperAdminAccount } = require("./controllers/superAdminController");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5002;
 
 // Security Headers
 app.use(helmet());
 
-// Restrict CORS to frontend origin only
+// Restrict CORS to allowed origins (dynamic localhost & FRONTEND_URL)
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "https://aiflix-frontend-bice.vercel.app",
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    // Allow any localhost port in development (e.g. 5173, 5174, 5175, etc.)
+    if (/^http:\/\/localhost(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+
+    // Allow configured production or staging origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(null, false);
+  },
   credentials: true,
 }));
 
