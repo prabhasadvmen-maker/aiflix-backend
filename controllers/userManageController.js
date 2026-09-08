@@ -65,6 +65,11 @@ const getUsers = async (req, res) => {
     if (sort === "name_asc") sortOption = { name: 1 };
     if (sort === "name_desc") sortOption = { name: -1 };
 
+    // Device filter
+    if (req.query.device && req.query.device !== "all") {
+      filter.device = req.query.device;
+    }
+
     // Run queries concurrently
     const [users, totalFiltered, totalAll, totalActive, totalInactive, totalGoogle, totalEmail, totalVerified] =
       await Promise.all([
@@ -82,11 +87,41 @@ const getUsers = async (req, res) => {
         User.countDocuments({ isEmailVerified: true }),
       ]);
 
+    // Fetch latest completed payment for each user to get their active OTT subscription plan
+    const Payment = require("../models/paymentModel");
+    const userEmails = users.map((u) => u.email.toLowerCase());
+    const payments = await Payment.find({
+      userEmail: { $in: userEmails },
+      status: "Completed",
+    }).sort({ createdAt: -1 });
+
+    const planMap = {};
+    for (const p of payments) {
+      const emailLower = p.userEmail.toLowerCase();
+      if (!planMap[emailLower]) {
+        planMap[emailLower] = {
+          planName: p.planName,
+          amount: p.amount,
+          currency: p.currency,
+          date: p.createdAt,
+        };
+      }
+    }
+
+    const enrichedUsers = users.map((u) => {
+      const userObj = u.toObject();
+      const planInfo = planMap[u.email.toLowerCase()];
+      userObj.plan = planInfo ? planInfo.planName : "Free Tier";
+      userObj.planDetails = planInfo || null;
+      userObj.device = userObj.device || "Mobile (App)";
+      return userObj;
+    });
+
     const totalPages = Math.ceil(totalFiltered / limitNum) || 1;
 
     res.status(200).json({
       success: true,
-      users,
+      users: enrichedUsers,
       pagination: {
         page: pageNum,
         limit: limitNum,

@@ -129,4 +129,72 @@ router.put("/infrastructure/:id", protectSuperAdmin, updateInfraNode);
 router.patch("/infrastructure/:id/status", protectSuperAdmin, toggleInfraNodeStatus);
 router.delete("/infrastructure/:id", protectSuperAdmin, deleteInfraNode);
 
+// Storage & CDN Management routes (protected)
+const {
+  getStorageNodes,
+  createStorageNode,
+  updateStorageNode,
+  deleteStorageNode,
+} = require("../controllers/storageManageController");
+
+router.get("/storage", protectSuperAdmin, getStorageNodes);
+router.post("/storage", protectSuperAdmin, createStorageNode);
+router.put("/storage/:id", protectSuperAdmin, updateStorageNode);
+router.delete("/storage/:id", protectSuperAdmin, deleteStorageNode);
+
+// Support Tickets (Helpdesk) routes (protected)
+const {
+  getTickets,
+  createTicket,
+  updateTicketStatus,
+  deleteTicket,
+} = require("../controllers/supportTicketController");
+
+router.get("/support", protectSuperAdmin, getTickets);
+router.post("/support", protectSuperAdmin, createTicket);
+router.put("/support/:id", protectSuperAdmin, updateTicketStatus);
+router.delete("/support/:id", protectSuperAdmin, deleteTicket);
+
+// Roles & Permissions routes (protected)
+const {
+  getRoles,
+  createRole,
+  updateRole,
+  deleteRole,
+  toggleRoleStatus,
+} = require("../controllers/roleController");
+
+router.get("/roles", protectSuperAdmin, getRoles);
+router.post("/roles", protectSuperAdmin, createRole);
+router.put("/roles/:id", protectSuperAdmin, updateRole);
+router.patch("/roles/:id/status", protectSuperAdmin, toggleRoleStatus);
+router.delete("/roles/:id", protectSuperAdmin, deleteRole);
+
+// Security & Audit Logs routes (protected)
+const {
+  getAuditLogs,
+  createAuditLog,
+  clearAuditLogs,
+} = require("../controllers/securityController");
+
+router.get("/security/logs", protectSuperAdmin, getAuditLogs);
+router.post("/security/logs", protectSuperAdmin, createAuditLog);
+router.delete("/security/logs", protectSuperAdmin, clearAuditLogs);
+
+// Global Settings routes (protected)
+const {
+  getSettings,
+  updateSettings,
+} = require("../controllers/settingController");
+
+router.get("/settings", protectSuperAdmin, getSettings);
+router.put("/settings", protectSuperAdmin, updateSettings);
+
+// Dashboard Stats route (protected)
+const {
+  getDashboardStats: getOverviewStats,
+} = require("../controllers/dashboardController");
+
+router.get("/dashboard-stats", protectSuperAdmin, getOverviewStats);
+
 module.exports = router;

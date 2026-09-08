@@ -51,6 +51,11 @@ const userSchema = new mongoose.Schema(
       default: "user",
       enum: ["user"],
     },
+    device: {
+      type: String,
+      enum: ["Mobile (App)", "Desktop (Web)", "Smart TV"],
+      default: "Mobile (App)",
+    },
   },
   { timestamps: true }
 );

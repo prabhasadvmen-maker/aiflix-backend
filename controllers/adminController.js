@@ -86,7 +86,7 @@ const impersonateAdmin = async (req, res) => {
     const token = jwt.sign(
       { id: admin._id, email: admin.email, role: admin.role || "admin" },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }  // Short-lived impersonation token
+      { expiresIn: "7d" }
     );
 
     console.log(`[IMPERSONATE LOG] SuperAdmin generated 1h token for Admin (${admin.email}) at ${new Date().toISOString()}`);

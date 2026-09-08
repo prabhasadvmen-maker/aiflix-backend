@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/adminModel");
+const SuperAdmin = require("../models/superAdminModel");
 
 const generateToken = (id, email, role) => {
   if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is not configured.");
@@ -13,28 +14,36 @@ const loginAdmin = async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ success: false, message: "Please provide email and password." });
 
-    const admin = await Admin.findOne({ email: email.toLowerCase().trim() });
+    const normalizedEmail = email.toLowerCase().trim();
+    let user = await Admin.findOne({ email: normalizedEmail });
+    let isSuperAdmin = false;
 
-    if (!admin)
+    if (!user) {
+      user = await SuperAdmin.findOne({ email: normalizedEmail });
+      if (user) isSuperAdmin = true;
+    }
+
+    if (!user)
       return res.status(401).json({ success: false, message: "Invalid email or password." });
 
-    if (!admin.isActive)
+    if (!isSuperAdmin && !user.isActive)
       return res.status(403).json({ success: false, message: "Your account has been deactivated. Contact Super Admin." });
 
-    const isMatch = await admin.matchPassword(password);
+    const isMatch = await user.matchPassword(password);
     if (!isMatch)
       return res.status(401).json({ success: false, message: "Invalid email or password." });
 
-    const token = generateToken(admin._id, admin.email, admin.role);
+    const role = isSuperAdmin ? "superadmin" : (user.role || "admin");
+    const token = generateToken(user._id, user.email, role);
 
     res.status(200).json({
       success: true,
       token,
       admin: {
-        id: admin._id,
-        name: admin.name,
-        email: admin.email,
-        role: admin.role,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: role,
       },
     });
   } catch (error) {

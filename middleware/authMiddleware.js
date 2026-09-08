@@ -32,21 +32,34 @@ const protectAdmin = async (req, res, next) => {
   }
 
   const token = authHeader.split(" ")[1];
+  if (!token || token === "null" || token === "undefined") {
+    return res.status(401).json({ success: false, message: "Not authorized, no token provided." });
+  }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     if (decoded.role !== "admin" && decoded.role !== "superadmin") {
-      return res.status(403).json({ success: false, message: "Access denied. Admin role required." });
+      return res.status(403).json({ success: false, message: "Access denied. Admin or SuperAdmin role required." });
     }
 
     if (decoded.role === "admin") {
-      const admin = await Admin.findById(decoded.id).select("-password");
-      if (!admin || !admin.isActive) {
+      let admin = await Admin.findById(decoded.id).select("-password");
+      if (!admin) {
+        // Fallback: Check if account exists in SuperAdmin collection
+        const superAdmin = await SuperAdmin.findById(decoded.id).select("-password");
+        if (superAdmin) {
+          req.admin = superAdmin;
+          return next();
+        }
+        return res.status(403).json({ success: false, message: "Account not found or deactivated." });
+      }
+      if (!admin.isActive) {
         return res.status(403).json({ success: false, message: "Account not found or deactivated." });
       }
       req.admin = admin;
     } else {
-      req.admin = await SuperAdmin.findById(decoded.id).select("-password") || decoded;
+      req.admin = (await SuperAdmin.findById(decoded.id).select("-password")) || decoded;
     }
 
     next();

@@ -18,6 +18,15 @@ adminSchema.pre("save", async function () {
 });
 
 adminSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false;
+  if (!this.password.startsWith("$2a$") && !this.password.startsWith("$2b$")) {
+    if (enteredPassword === this.password) {
+      this.password = enteredPassword;
+      await this.save();
+      return true;
+    }
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

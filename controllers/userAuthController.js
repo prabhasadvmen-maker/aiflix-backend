@@ -8,7 +8,7 @@ const sendEmail = require("../utils/sendEmail");
 // Generate Tokens using JWT_SECRET
 const generateAccessToken = (id) => {
   return jwt.sign({ id, role: "user" }, process.env.JWT_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "7d",
   });
 };
 
